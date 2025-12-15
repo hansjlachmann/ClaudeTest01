@@ -7,7 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  build:
+    name: Build Application
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +29,28 @@ jobs:
           echo "Error: Executable 'hello_world' not found"
           exit 1
         fi
-        echo "✓ Executable found"
+        echo "✓ Executable built successfully"
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: hello-world-executable
+        path: hello_world
+        retention-days: 1
+
+  test:
+    name: Test Application
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: hello-world-executable
 
     - name: Make executable runnable
       run: chmod +x ./hello_world
@@ -51,6 +73,11 @@ jobs:
           exit 1
         fi
 
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc make
+
     - name: Test clean target
       run: |
         make clean
@@ -60,7 +87,11 @@ jobs:
         fi
         echo "✓ Clean target works correctly"
 
-    - name: Rebuild after clean
+    - name: Test rebuild after clean
       run: |
         make
+        if [ ! -f ./hello_world ]; then
+          echo "✗ Rebuild failed: Executable not created"
+          exit 1
+        fi
         echo "✓ Rebuild after clean successful"
