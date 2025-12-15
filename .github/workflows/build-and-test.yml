@@ -1,0 +1,66 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, claude/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc make
+
+    - name: Build application
+      run: make
+
+    - name: Verify executable exists
+      run: |
+        if [ ! -f ./hello_world ]; then
+          echo "Error: Executable 'hello_world' not found"
+          exit 1
+        fi
+        echo "✓ Executable found"
+
+    - name: Make executable runnable
+      run: chmod +x ./hello_world
+
+    - name: Run application
+      run: ./hello_world > output.txt
+
+    - name: Verify output
+      run: |
+        EXPECTED="Hello World"
+        ACTUAL=$(cat output.txt)
+        if [ "$ACTUAL" = "$EXPECTED" ]; then
+          echo "✓ Test passed: Output matches expected value"
+          echo "  Expected: $EXPECTED"
+          echo "  Actual: $ACTUAL"
+        else
+          echo "✗ Test failed: Output does not match"
+          echo "  Expected: $EXPECTED"
+          echo "  Actual: $ACTUAL"
+          exit 1
+        fi
+
+    - name: Test clean target
+      run: |
+        make clean
+        if [ -f ./hello_world ]; then
+          echo "✗ Clean failed: Executable still exists"
+          exit 1
+        fi
+        echo "✓ Clean target works correctly"
+
+    - name: Rebuild after clean
+      run: |
+        make
+        echo "✓ Rebuild after clean successful"
