@@ -1,0 +1,39 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, claude/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc make
+
+    - name: Build application
+      run: make
+
+    - name: Verify executable exists
+      run: |
+        if [ ! -f ./hello_world ]; then
+          echo "Error: Executable 'hello_world' not found"
+          exit 1
+        fi
+        echo "✓ Executable built successfully"
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: hello-world-executable
+        path: hello_world
+        retention-days: 1
