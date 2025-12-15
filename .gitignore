@@ -1,0 +1,12 @@
+# Compiled executable
+hello_world
+
+# Object files
+*.o
+
+# Editor/IDE files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
